@@ -29,7 +29,8 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => '',
+        'description' => "# Laravel Sanctum Auth API
+Ce projet est une API d'authentification construite avec Laravel et le package Laravel Sanctum. L'API fournit des endpoints sécurisés pour l'inscription, la connexion, la déconnexion, la vérification d'email ainsi que la gestion du mot de passe oublié et de sa réinitialisation. Conçue pour être facilement consommée par des applications frontend, l'API utilise des tokens pour l'authentification.",
     ],
 
     /*
@@ -39,7 +40,7 @@ return [
         /*
          * Define the title of the documentation's website. App name is used when this config is `null`.
          */
-        'title' => null,
+        'title' => 'Laravel Sanctum Auth API',
 
         /*
          * Define the theme of the documentation. Available options are `light` and `dark`.
