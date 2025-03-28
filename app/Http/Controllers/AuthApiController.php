@@ -43,4 +43,31 @@ class AuthApiController extends Controller
                 return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Vérification de l'email de l'utilisateur.
+     * @param mixed $id
+     * @param mixed $hash
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function verifyEmail($id, $hash)
+    {
+        try {
+            $user = User::findOrFail($id);
+ 
+            if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+                return response()->json(['error' => 'Lien de vérification invalide.'], 400);
+            }
+ 
+            if ($user->hasVerifiedEmail()) {
+                return response()->json(['message' => 'Email déjà vérifié.'], 200);
+            }
+ 
+            $user->markEmailAsVerified();
+ 
+            return response()->json(['message' => 'Email vérifié avec succès.'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
+        }
+    }
 }
