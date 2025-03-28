@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\ValidationException;
@@ -102,6 +103,24 @@ class AuthApiController extends Controller
             return response()->json(['error' => 'Données invalides.', 'details' => $e->errors()], 422);
         } catch (Exception $e) {
             return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Déconnexion de l'utilisateur.
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function logout()
+    {
+        try {
+            if (Auth::check() ) {
+                Auth::user()->currentAccessToken()->delete();
+                return response()->json(['message' => 'Déconnexion réussie.'], 200);
+            } else {
+                return response()->json(['error' => 'Vous n\'êtes pas connecté.'], 401);
+            }            
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Impossible de se déconnecter: '. $e->getMessage()], 500);
         }
     }
 }
