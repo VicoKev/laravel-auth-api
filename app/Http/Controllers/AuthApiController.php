@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Validation\ValidationException;
 
 class AuthApiController extends Controller
@@ -75,7 +77,7 @@ class AuthApiController extends Controller
     }
 
     /**
-     * Connexion d'un utilisateur.
+     * Connexion de l'utilisateur.
      * @param \Illuminate\Http\Request $request
      * @return mixed|\Illuminate\Http\JsonResponse
      */
@@ -126,7 +128,7 @@ class AuthApiController extends Controller
     }
 
     /**
-     * Envoi d'un lien de réinitialisation de mot de passe.
+     * Envoi d'un lien de réinitialisation de mot de passe à l'utilisateur.
      * @param \Illuminate\Http\Request $request
      * @return mixed|\Illuminate\Http\JsonResponse
      */
@@ -140,6 +142,44 @@ class AuthApiController extends Controller
             Password::sendResetLink($validated);
  
             return response()->json(['message' => 'Lien de réinitialisation envoyé.'], 200);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Données invalides.', 'details' => $e->errors()], 422);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Réinitialisation du mot de passe de l'utilisateur.
+     * @param \Illuminate\Http\Request $request
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function resetPassword(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'string', 'email', 'exists:users,email'],
+                'token' => ['required', 'string'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+            ]);
+ 
+            $status = Password::reset(
+                $validated,
+                function ($user, $password) {
+                    $user->forceFill([
+                        'password' => Hash::make($password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
+ 
+                    event(new PasswordReset($user));
+                }
+            );
+ 
+            if ($status === Password::PASSWORD_RESET) {
+                return response()->json(['message' => 'Mot de passe réinitialisé avec succès.'], 200);
+            }
+ 
+            return response()->json(['error' => 'Échec de la réinitialisation.'], 500);
         } catch (ValidationException $e) {
             return response()->json(['error' => 'Données invalides.', 'details' => $e->errors()], 422);
         } catch (Exception $e) {

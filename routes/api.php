@@ -17,3 +17,4 @@ Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\AuthApiController:
 
 // Mot de passe oublié et réinitialisation
 Route::post('/forgot-password', [App\Http\Controllers\AuthApiController::class, 'forgotPassword'])->name('password.reset');
+Route::post('/reset-password', [App\Http\Controllers\AuthApiController::class, 'resetPassword']);
