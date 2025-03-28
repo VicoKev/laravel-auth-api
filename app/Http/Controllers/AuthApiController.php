@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 
 class AuthApiController extends Controller
@@ -121,6 +122,28 @@ class AuthApiController extends Controller
             }            
         } catch (Exception $e) {
             return response()->json(['error' => 'Impossible de se déconnecter: '. $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Envoi d'un lien de réinitialisation de mot de passe.
+     * @param \Illuminate\Http\Request $request
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function forgotPassword(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'string', 'email', 'exists:users,email'],
+            ]);
+ 
+            Password::sendResetLink($validated);
+ 
+            return response()->json(['message' => 'Lien de réinitialisation envoyé.'], 200);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Données invalides.', 'details' => $e->errors()], 422);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
         }
     }
 }

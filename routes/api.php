@@ -14,3 +14,6 @@ Route::post('/logout', [App\Http\Controllers\AuthApiController::class, 'logout']
 
 // Vérification de l'email
 Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\AuthApiController::class, 'verifyEmail'])->name('verification.verify');
+
+// Mot de passe oublié et réinitialisation
+Route::post('/forgot-password', [App\Http\Controllers\AuthApiController::class, 'forgotPassword'])->name('password.reset');
