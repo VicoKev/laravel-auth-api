@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Validation\ValidationException;
 
 class AuthApiController extends Controller
 {
@@ -66,6 +67,39 @@ class AuthApiController extends Controller
             $user->markEmailAsVerified();
  
             return response()->json(['message' => 'Email vérifié avec succès.'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Connexion d'un utilisateur.
+     * @param \Illuminate\Http\Request $request
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function login(Request $request)
+    {
+        try {
+            $request->validate([
+                'email' => ['required', 'string', 'email'],
+                'password' => ['required', 'string'],
+            ]);
+ 
+            $user = User::where('email', $request->email)->first();
+ 
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json(['error' => 'Identifiants incorrects.'], 401);
+            }
+ 
+            if (!$user->hasVerifiedEmail()) {
+                return response()->json(['error' => 'Veuillez vérifier votre email avant de vous connecter.'], 403);
+            }
+ 
+            $token = $user->createToken('auth-token')->plainTextToken;
+ 
+            return response()->json(['token' => $token, 'user' => $user], 200);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Données invalides.', 'details' => $e->errors()], 422);
         } catch (Exception $e) {
             return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
         }

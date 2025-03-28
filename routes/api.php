@@ -9,6 +9,7 @@ Route::get('/user', function (Request $request) {
 
 // Authentification
 Route::post('/register', [App\Http\Controllers\AuthApiController::class, 'register']);
+Route::post('/login', [App\Http\Controllers\AuthApiController::class, 'login'])->name('login');
 
 // Vérification de l'email
 Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\AuthApiController::class, 'verifyEmail'])->name('verification.verify');
